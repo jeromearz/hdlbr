@@ -49,11 +49,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     if vars_file_path.ends_with(".json") {
         let vars = read_vars_from_json_file(vars_file_path)?;
 
-        println!("{}", reg.render_template(&tpl_str, &vars)?)
+        print!("{}", reg.render_template(&tpl_str, &vars)?)
     } else {
         let vars = read_vars_from_yaml_file(vars_file_path)?;
 
-        println!("{}", reg.render_template(&tpl_str, &vars)?)
+        print!("{}", reg.render_template(&tpl_str, &vars)?)
     }
 
     Ok(())
