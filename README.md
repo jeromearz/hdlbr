@@ -7,7 +7,7 @@ hdlbr VARIABLES_FILE TEMPLATE_FILE
 ````
 
 Where:
-- VARIABLES_FILE is a JSON map, listing all vars.
+- VARIABLES_FILE is a YAML or JSON map, listing all vars.
 - TEMPLATE_FILE is a Handlebars template.
 
 ## Example
@@ -43,6 +43,27 @@ Result of `hdlbr vars.json template.hbs`:
 Hello Foo
   Dracula
   Alucard
+````
+
+Another example with YAML format:
+
+`vars.yaml`:
+
+````yaml
+name: nginx
+version: '1.0.0'
+````
+
+`template.hbs`:
+
+````handlebars
+docker pull "{{name}}:{{version}}"
+````
+
+Result of `hdlbr vars.yaml template.hbs`:
+
+````
+docker pull "nginx:1.0.0"
 ````
 
 ## Build

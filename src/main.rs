@@ -4,11 +4,12 @@ use std::io::BufReader;
 use std::io::Read;
 use std::path::Path;
 use std::error::Error;
-use serde_json::Map;
-use serde_json::value::Value;
+use serde_json::Map as JsonMap;
+use serde_json::value::Value as JsonValue;
+use serde_yaml::Mapping as YamlMap;
 use clap::clap_app;
 
-fn read_vars_from_file<P: AsRef<Path>>(path: P) -> Result<Map<String, Value>, Box<Error>> {
+fn read_vars_from_json_file<P: AsRef<Path>>(path: P) -> Result<JsonMap<String, JsonValue>, Box<dyn Error>> {
     let file = File::open(path)?;
     let reader = BufReader::new(file);
 
@@ -17,7 +18,16 @@ fn read_vars_from_file<P: AsRef<Path>>(path: P) -> Result<Map<String, Value>, Bo
     Ok(vars)
 }
 
-fn main() -> Result<(), Box<Error>> {
+fn read_vars_from_yaml_file<P: AsRef<Path>>(path: P) -> Result<YamlMap, Box<dyn Error>> {
+    let file = File::open(path)?;
+    let reader = BufReader::new(file);
+
+    let vars = serde_yaml::from_reader(reader)?;
+
+    Ok(vars)
+}
+
+fn main() -> Result<(), Box<dyn Error>> {
     let matches = clap_app!(myapp =>
         (version: "1.0")
         (author: "Jérôme Arzel <jerome@quitoque.fr>")
@@ -29,7 +39,6 @@ fn main() -> Result<(), Box<Error>> {
     let vars_file_path = matches.value_of("VARIABLES_FILE").unwrap();
     let template_path = matches.value_of("TEMPLATE_FILE").unwrap();
 
-    let vars = read_vars_from_file(vars_file_path)?;
     let mut tpl_str = String::new();
     let mut file = File::open(template_path)?;
 
@@ -37,7 +46,15 @@ fn main() -> Result<(), Box<Error>> {
 
     let reg = Handlebars::new();
 
-    println!("{}", reg.render_template(&tpl_str, &vars)?);
+    if vars_file_path.ends_with(".json") {
+        let vars = read_vars_from_json_file(vars_file_path)?;
+
+        println!("{}", reg.render_template(&tpl_str, &vars)?)
+    } else {
+        let vars = read_vars_from_yaml_file(vars_file_path)?;
+
+        println!("{}", reg.render_template(&tpl_str, &vars)?)
+    }
 
     Ok(())
 }
